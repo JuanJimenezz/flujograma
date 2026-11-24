@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flujo de gestión de incidentes – Secretaría de Salud La Dorada</title>
+<style>
+:root{--bg:#f4f7f6;--card:#fff;--tx:#17302b;--mu:#58706a;--pr:#0f766e;--pr2:#d7efeb;--ac:#c2410c;--ac2:#fde8dc;--bd:#d5e0dd;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a18;--card:#162623;--tx:#e6f1ee;--mu:#9bb3ad;--pr:#4fd1c2;--pr2:#14403b;--ac:#fb923c;--ac2:#40251a;--bd:#2a403c}}
+:root[data-theme="dark"]{--bg:#0e1a18;--card:#162623;--tx:#e6f1ee;--mu:#9bb3ad;--pr:#4fd1c2;--pr2:#14403b;--ac:#fb923c;--ac2:#40251a;--bd:#2a403c}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+.w{max-width:900px;margin:0 auto;padding:16px}
+h1{font-size:clamp(1.25rem,4vw,1.7rem);margin:4px 0}
+.mu{color:var(--mu);font-size:.92rem}
+.box{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-top:12px}
+.sc{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+button{font:inherit;cursor:pointer;border:1px solid var(--pr);background:transparent;color:var(--pr);border-radius:999px;padding:8px 14px}
+button.on,button.pl{background:var(--pr);color:var(--card)}
+button:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.cols{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:760px){.cols{grid-template-columns:1.1fr 1fr}}
+.flow{display:flex;flex-direction:column;align-items:stretch}
+.n{border:2px solid var(--bd);background:var(--card);border-radius:12px;padding:9px 12px;text-align:left;color:var(--tx);transition:all .35s;opacity:.45}
+.n small{display:block;color:var(--mu)}
+.n.d{border-style:dashed;border-radius:999px;text-align:center}
+.n.vis{opacity:1}
+.n.act{border-color:var(--ac);background:var(--ac2);transform:scale(1.02);opacity:1}
+.n.skip{opacity:.25}
+.ar{height:16px;text-align:center;color:var(--mu);line-height:16px;font-size:.8rem}
+.ph{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--pr);margin:6px 0 4px;font-weight:700}
+#det{min-height:190px}
+#det h2{margin:0 0 4px;font-size:1.05rem}
+#det .tag{display:inline-block;background:var(--pr2);color:var(--pr);border-radius:8px;padding:2px 8px;margin:2px 4px 2px 0;font-size:.8rem}
+.note{background:var(--ac2);border-radius:10px;padding:8px 10px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="w">
+<small class="mu">SECRETARÍA LOCAL DE SALUD · LA DORADA · BASADO EN NIST SP 800-61 E ISO/IEC 27035</small>
+<h1>Flujo de gestión de incidentes de seguridad</h1>
+<p class="mu">Elige un escenario y pulsa «Reproducir»: el flujo se anima y marca los pasos que aplican. También puedes tocar cualquier paso para ver quién actúa y en qué plazo.</p>
+
+<div class="box">
+<b>Escenario</b>
+<div class="sc" id="sc" role="group" aria-label="Escenarios"></div>
+<button class="pl" id="play">▶ Reproducir</button>
+<button id="reset">Reiniciar</button>
+</div>
+
+<div class="cols">
+<div class="box"><div class="flow" id="flow"></div></div>
+<div class="box" id="det" aria-live="polite"><h2>Detalle del paso</h2><p class="mu">Toca un paso o reproduce un escenario.</p></div>
+</div>
+</div>
+<script>
+const S=[
+{id:1,ph:"1 · Preparación y detección",t:"Detectar y reportar",w:"Cualquier funcionario o contratista",p:"Máx. 2 horas hábiles desde que se nota",d:"Quien detecta avisa por el canal oficial de seguridad con un formato corto: qué pasó, cuándo y qué información está involucrada. Reportar de buena fe no genera sanción."},
+{id:2,t:"Registrar y clasificar",w:"Oficial de seguridad (secretaría técnica del Comité)",p:"Misma jornada",d:"Se abre el registro del incidente y se clasifica por tipo (divulgación, integridad, disponibilidad) y por la información afectada (datos sensibles de salud, presupuestal, reportes)."},
+{id:3,dec:1,t:"¿Es un incidente?",w:"Oficial de seguridad",p:"Misma jornada",d:"Si solo es un evento sin impacto en la información, se documenta y se cierra. Si afecta confidencialidad, integridad o disponibilidad, continúa."},
+{id:4,t:"Definir severidad",w:"Oficial + Secretario o su delegado",p:"Máx. 4 horas hábiles",d:"Crítica: datos sensibles divulgados. Alta: reporte oficial con cifras erradas o fuera de plazo. Media: envío sin confirmación de recepción. Baja: sin impacto externo."},
+{id:5,ph:"2 · Contención y recuperación",t:"Contener",w:"Dueño del proceso + TIC de la Alcaldía",p:"Críticos: inmediato",d:"Evitar que el daño crezca: solicitar la eliminación o devolución del correo, bloquear accesos, suspender el envío de reportes con cifras dudosas y preservar evidencias."},
+{id:6,t:"Erradicar y recuperar",w:"Dueño del proceso + TIC",p:"Según severidad",d:"Corregir la causa (acceso indebido, formato, procedimiento), reenviar el reporte o trámite correcto y confirmar la recepción por la entidad correcta."},
+{id:7,dec:1,ph:"3 · Comunicación",t:"¿Hay datos personales afectados?",w:"Oficial + Asesoría jurídica",p:"Antes de 24 horas hábiles",d:"Si se afectaron datos personales, se evalúa la notificación a titulares y a la autoridad de protección de datos, y se informa a los entes de control cuando corresponda."},
+{id:8,t:"Notificar",w:"Secretario con apoyo jurídico",p:"Según norma vigente (verificar con asesor jurídico)",d:"Comunicación formal y proporcionada a los titulares, a la Superintendencia de Industria y Comercio y a las entidades que deban saberlo. Se deja constancia."},
+{id:9,ph:"4 · Cierre y mejora",t:"Lecciones aprendidas y cierre",w:"Comité de Seguridad",p:"Máx. 10 días hábiles tras la recuperación",d:"Se revisa la causa raíz, se definen acciones correctivas con responsable y fecha, se actualiza la capacitación y se reporta en el Comité. Alimenta los indicadores de los 4 objetivos."}
+];
+const SC=[
+{n:"Correo con diagnóstico a entidad equivocada",path:[1,2,3,4,5,6,7,8,9],x:{1:"Una funcionaria nota que un correo con datos de un paciente se fue a otro destinatario.",4:"Severidad crítica: datos sensibles de salud.",5:"Se pide eliminar el correo al destinatario y se bloquea la lista de distribución errada.",8:"Hay datos personales: se evalúa notificar al titular y a la SIC."}},
+{n:"Reporte con cifras erradas a un ente de control",path:[1,2,3,4,5,6,7,9],x:{1:"El director detecta que el porcentaje de ejecución no concilia con Hacienda.",4:"Severidad alta: afecta la integridad del reporte.",6:"Se corrige el dato y se reenvía con oficio aclaratorio.",7:"No hay datos personales: se omite la notificación a titulares."}},
+{n:"Afiliación enviada a la EPS sin confirmación",path:[1,2,3,4,6,7,9],x:{1:"Aseguramiento nota que no llegó acuse de recibo de una solicitud.",4:"Severidad media: riesgo de paciente sin atención.",6:"Se reenvía por canal alterno y se confirma recepción por la EPS correcta.",7:"Solo se informa al titular si hubo envío a destinatario erróneo."}},
+{n:"Correo sospechoso (phishing) reportado",path:[1,2,3,4,5,6,7,9],x:{1:"Una persona de Vigilancia recibe un correo que pide su clave de acceso.",4:"Severidad baja o media según si hubo clic.",5:"Se cambia la clave y se revisan accesos recientes.",7:"Sin acceso a datos de pacientes: no se notifica a titulares."}}
+];
+let cur=0,tm=null;
+const $=id=>document.getElementById(id);
+function build(){
+ $("sc").innerHTML=SC.map((s,i)=>`<button data-i="${i}" class="${i==cur?'on':''}">${s.n}</button>`).join("");
+ let h="";S.forEach((s,i)=>{
+  if(s.ph)h+=`<div class="ph">${s.ph}</div>`;
+  h+=`<button class="n ${s.dec?'d':''}" data-s="${s.id}" id="n${s.id}" style="border-radius:${s.dec?'999px':'12px'}"><b>${s.id}. ${s.t}</b><small>${s.w}</small></button>`;
+  if(i<S.length-1)h+='<div class="ar">▼</div>';
+ });
+ $("flow").innerHTML=h;
+}
+function show(id,extra){
+ const s=S.find(x=>x.id==id);
+ $("det").innerHTML=`<h2>${s.id}. ${s.t}</h2><span class="tag">Responsable: ${s.w}</span><span class="tag">Plazo: ${s.p}</span><p>${s.d}</p>${extra?`<div class="note"><b>En este escenario:</b> ${extra}</div>`:""}`;
+}
+function mark(id,on){const e=$("n"+id);if(e)e.classList.toggle("act",on)}
+function clear(){clearInterval(tm);tm=null;S.forEach(s=>{const e=$("n"+s.id);e.className="n"+(s.dec?" d":"")});$("play").textContent="▶ Reproducir"}
+function play(){
+ clear();const sc=SC[cur];let i=0;
+ S.forEach(s=>{if(!sc.path.includes(s.id))$("n"+s.id).classList.add("skip")});
+ $("play").textContent="⏸ Detener";
+ const step=()=>{
+  if(i>0)mark(sc.path[i-1],false),$("n"+sc.path[i-1]).classList.add("vis");
+  if(i>=sc.path.length){clearInterval(tm);tm=null;$("play").textContent="▶ Reproducir";return}
+  const id=sc.path[i];mark(id,true);$("n"+id).scrollIntoView({block:"nearest",behavior:"smooth"});show(id,sc.x[id]);i++;
+ };
+ step();tm=setInterval(step,2400);
+}
+document.addEventListener("click",e=>{
+ const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.i!==undefined){cur=+b.dataset.i;build();clear();}
+ else if(b.dataset.s){const id=+b.dataset.s;show(id,SC[cur].path.includes(id)?SC[cur].x[id]:"");}
+ else if(b.id=="play"){tm?clear():play()}
+ else if(b.id=="reset"){clear();$("det").innerHTML='<h2>Detalle del paso</h2><p class="mu">Toca un paso o reproduce un escenario.</p>'}
+});
+build();
+</script>
+</body>
+</html>
